@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16
+    environment: { POSTGRES_DB: agenticai, POSTGRES_PASSWORD: dev }
+    ports: ["5432:5432"]
+  redis:
+    image: redis:7
+    container_name: agenticai-redis
+    ports: ["6379:6379"]
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: agenticai-rabbitmq
+    ports: ["5672:5672", "15672:15672"]  # yönetim UI : 15672
+  
