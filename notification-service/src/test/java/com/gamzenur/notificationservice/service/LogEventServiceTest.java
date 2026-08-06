@@ -21,8 +21,14 @@ class LogEventServiceTest {
                 "appointment.created",
                 new ObjectMapper().readTree("""
                         {
+                          "eventId": "event-123",
+                          "eventType": "appointment.created",
                           "occurredAt": "2026-08-04T12:00:00Z",
-                          "correlationId": "test-correlation"
+                          "correlationId": "test-correlation",
+                          "appointment": {
+                            "customerName": "Gamzenur Karayunlu",
+                            "customerPhone": "+905551234567"
+                          }
                         }
                         """)
         );
@@ -32,6 +38,10 @@ class LogEventServiceTest {
         assertThat(captor.getValue().getService()).isEqualTo("appointment-service");
         assertThat(captor.getValue().getCorrelationId()).isEqualTo("test-correlation");
         assertThat(captor.getValue().getMessage()).doesNotContain("customer");
+        assertThat(captor.getValue().getMessage()).doesNotContain("+905551234567");
+        assertThat(captor.getValue().getMetaJson()).doesNotContain("Gamzenur Karayunlu");
+        assertThat(captor.getValue().getMetaJson()).doesNotContain("+905551234567");
+        assertThat(captor.getValue().getMetaJson()).contains("appointment.created");
     }
 
     @Test
