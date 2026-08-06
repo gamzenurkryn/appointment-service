@@ -39,3 +39,4 @@ out/
 .gradle-notification/
 secrets/
 credentials.json
+.env

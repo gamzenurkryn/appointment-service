@@ -37,8 +37,11 @@ services:
       DB_PASSWORD: dev
       RABBITMQ_ENABLED: "true"
       RABBITMQ_HOST: rabbitmq
-      GOOGLE_CALENDAR_ENABLED: "false"
+      GOOGLE_CALENDAR_ENABLED: ${GOOGLE_CALENDAR_ENABLED:-false}
+      GOOGLE_CALENDAR_CREDENTIALS: file:/app/secrets/google-service-account.json
       WHATSAPP_CLOUD_API_ENABLED: "false"
+    volumes:
+      - ./secrets/google-service-account.json:/app/secrets/google-service-account.json:ro
     ports: ["8081:8081"]
     depends_on:
       postgres: { condition: service_healthy }
