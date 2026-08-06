@@ -40,9 +40,13 @@ public class CallController {
     }
 
     @GetMapping
-    @Operation(summary = "Çağrıları listele", description = "İstenirse çağrı durumuna göre filtreler.")
-    public List<CallResponse> getCalls(@RequestParam(required = false) CallStatus status) {
-        return callService.getCalls(status);
+    @Operation(summary = "Çağrıları listele", description = "Durum, mağaza, oda adı veya müşteri telefonuna göre filtreler.")
+    public List<CallResponse> getCalls(
+            @RequestParam(required = false) CallStatus status,
+            @RequestParam(required = false) UUID storeId,
+            @RequestParam(required = false) String q
+    ) {
+        return callService.getCalls(status, storeId, q);
     }
 
     @GetMapping("/{id}")

@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import java.util.UUID;
 import java.time.OffsetDateTime;
 import java.util.Optional;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -90,5 +91,24 @@ class CallServiceTest {
         assertThat(call.getParticipantCount()).isZero();
         assertThat(call.getEndedAt()).isEqualTo(finishedAt);
         verify(repository).save(call);
+    }
+
+    @Test
+    void shouldPassDocumentedFiltersToRepository() {
+        CallRepository repository = mock(CallRepository.class);
+        UUID storeId = UUID.randomUUID();
+        when(repository.search(CallStatus.ACTIVE, storeId, "90555")).thenReturn(List.of());
+        CallService service = new CallService(
+                repository,
+                mock(AppointmentClient.class),
+                mock(LiveKitClient.class),
+                mock(AgentDispatcher.class),
+                mock(CallEventPublisher.class)
+        );
+
+        List<CallResponse> result = service.getCalls(CallStatus.ACTIVE, storeId, " 90555 ");
+
+        assertThat(result).isEmpty();
+        verify(repository).search(CallStatus.ACTIVE, storeId, "90555");
     }
 }
