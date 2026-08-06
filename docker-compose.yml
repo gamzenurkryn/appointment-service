@@ -3,12 +3,111 @@ services:
     image: postgres:16
     environment: { POSTGRES_DB: agenticai, POSTGRES_PASSWORD: dev }
     ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d agenticai"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   redis:
     image: redis:7
     container_name: agenticai-redis
     ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: agenticai-rabbitmq
-    ports: ["5672:5672", "15672:15672"]  # yönetim UI : 15672
-  
+    ports: ["5672:5672", "15672:15672"]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  appointment-service:
+    build: { context: ., target: appointment-runtime }
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/agenticai
+      DB_USERNAME: postgres
+      DB_PASSWORD: dev
+      RABBITMQ_ENABLED: "true"
+      RABBITMQ_HOST: rabbitmq
+      GOOGLE_CALENDAR_ENABLED: "false"
+      WHATSAPP_CLOUD_API_ENABLED: "false"
+    ports: ["8081:8081"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+
+  call-service:
+    build: { context: ., target: call-runtime }
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/agenticai
+      DB_USERNAME: postgres
+      DB_PASSWORD: dev
+      APPOINTMENT_SERVICE_URL: http://appointment-service:8081
+      RABBITMQ_ENABLED: "true"
+      RABBITMQ_HOST: rabbitmq
+      LIVEKIT_ENABLED: ${LIVEKIT_ENABLED:-false}
+      LIVEKIT_URL: ${LIVEKIT_URL:-}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:-}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET:-}
+      LIVEKIT_AGENT_DISPATCH_ENABLED: ${LIVEKIT_AGENT_DISPATCH_ENABLED:-false}
+      LIVEKIT_AGENT_NAME: ${LIVEKIT_AGENT_NAME:-}
+    ports: ["8082:8082"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+      appointment-service: { condition: service_started }
+
+  notification-service:
+    build: { context: ., target: notification-runtime }
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/agenticai
+      DB_USERNAME: postgres
+      DB_PASSWORD: dev
+      RABBITMQ_ENABLED: "true"
+      RABBITMQ_HOST: rabbitmq
+    ports: ["8083:8083"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+
+  crm-service:
+    build: { context: ., target: crm-runtime }
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/agenticai
+      DB_USERNAME: postgres
+      DB_PASSWORD: dev
+      RABBITMQ_ENABLED: "true"
+      RABBITMQ_HOST: rabbitmq
+    ports: ["8084:8084"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+
+  api-gateway:
+    build: { context: ., target: gateway-runtime }
+    environment:
+      APPOINTMENT_SERVICE_URL: http://appointment-service:8081
+      CALL_SERVICE_URL: http://call-service:8082
+      NOTIFICATION_SERVICE_URL: http://notification-service:8083
+      CRM_SERVICE_URL: http://crm-service:8084
+      CALL_SERVICE_HEALTH_URL: http://call-service:8082/actuator/health
+      NOTIFICATION_SERVICE_HEALTH_URL: http://notification-service:8083/actuator/health
+      WHATSAPP_SERVICE_HEALTH_URL: http://appointment-service:8081/actuator/health
+      REDIS_HOST: redis
+      JWT_ENABLED: ${JWT_ENABLED:-false}
+      JWT_SECRET: ${JWT_SECRET:-}
+    ports: ["8080:8080"]
+    depends_on:
+      redis: { condition: service_healthy }
+      appointment-service: { condition: service_started }
+      call-service: { condition: service_started }
+      notification-service: { condition: service_started }
+      crm-service: { condition: service_started }

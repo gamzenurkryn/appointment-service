@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WebSocket Olay Testi</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        button { padding: 10px 16px; margin-right: 8px; cursor: pointer; }
+        #status { margin: 18px 0; font-weight: bold; }
+        #events { min-height: 240px; padding: 16px; color: #d6f5d6; background: #111; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+<h1>Notification Service - WebSocket Testi</h1>
+<p>Bu sayfa <code>/topic/events</code> kanalındaki olayları canlı gösterir.</p>
+<button id="connect">Bağlan</button>
+<button id="clear">Temizle</button>
+<div id="status">Bağlantı bekleniyor</div>
+<pre id="events">Henüz olay alınmadı.</pre>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+<script>
+    const statusElement = document.getElementById('status');
+    const eventsElement = document.getElementById('events');
+    let client;
+
+    document.getElementById('connect').addEventListener('click', () => {
+        if (client && client.active) return;
+        client = new StompJs.Client({
+            webSocketFactory: () => new SockJS('/api/v1/stream'),
+            reconnectDelay: 3000,
+            onConnect: () => {
+                statusElement.textContent = 'Bağlandı - olay bekleniyor';
+                client.subscribe('/topic/events', message => {
+                    const event = JSON.parse(message.body);
+                    const previousEvents = eventsElement.textContent === 'Henüz olay alınmadı.'
+                            ? ''
+                            : '\n\n' + eventsElement.textContent;
+                    eventsElement.textContent = JSON.stringify(event, null, 2) + previousEvents;
+                });
+            },
+            onStompError: frame => {
+                statusElement.textContent = 'STOMP hatası: ' + frame.headers.message;
+            },
+            onWebSocketClose: () => {
+                statusElement.textContent = 'Bağlantı kapandı';
+            }
+        });
+        client.activate();
+    });
+
+    document.getElementById('clear').addEventListener('click', () => {
+        eventsElement.textContent = 'Henüz olay alınmadı.';
+    });
+</script>
+</body>
+</html>

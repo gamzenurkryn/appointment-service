@@ -1,1 +1,5 @@
 rootProject.name = 'appointment-service'
+include 'api-gateway'
+include 'call-service'
+include 'notification-service'
+include 'crm-service'

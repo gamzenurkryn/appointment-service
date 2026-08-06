@@ -35,3 +35,7 @@ out/
 
 ### VS Code ###
 .vscode/
+.gradle-user/
+.gradle-notification/
+secrets/
+credentials.json
