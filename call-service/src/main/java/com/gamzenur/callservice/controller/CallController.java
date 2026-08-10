@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -59,8 +60,9 @@ public class CallController {
     @Operation(summary = "Çağrı durumunu güncelle", description = "AI ajanı veya webhook tarafından durum, sonuç ve katılımcı bilgilerini günceller.")
     public CallResponse updateCall(
             @PathVariable UUID id,
+            @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId,
             @Valid @RequestBody UpdateCallRequest request
     ) {
-        return callService.updateCall(id, request);
+        return callService.updateCall(id, request, correlationId);
     }
 }

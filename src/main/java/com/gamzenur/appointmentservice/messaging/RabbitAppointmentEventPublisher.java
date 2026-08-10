@@ -33,16 +33,33 @@ public class RabbitAppointmentEventPublisher implements AppointmentEventPublishe
     }
 
     @Override
+    public void publishUpdated(AppointmentResponse appointment, String correlationId) {
+        publish(RabbitMqConfig.UPDATED_ROUTING_KEY, appointment, correlationId);
+    }
+
+    @Override
     public void publishCancelled(AppointmentResponse appointment) {
         publish(RabbitMqConfig.CANCELLED_ROUTING_KEY, appointment);
     }
 
+    @Override
+    public void publishCancelled(AppointmentResponse appointment, String correlationId) {
+        publish(RabbitMqConfig.CANCELLED_ROUTING_KEY, appointment, correlationId);
+    }
+
     private void publish(String eventType, AppointmentResponse appointment) {
+        publish(eventType, appointment, currentCorrelationId());
+    }
+
+    private void publish(String eventType, AppointmentResponse appointment, String correlationId) {
+        String effectiveCorrelationId = correlationId == null || correlationId.isBlank()
+                ? currentCorrelationId()
+                : correlationId;
         AppointmentEvent event = new AppointmentEvent(
                 UUID.randomUUID(),
                 eventType,
                 OffsetDateTime.now(),
-                currentCorrelationId(),
+                effectiveCorrelationId,
                 appointment
         );
         applicationEventPublisher.publishEvent(event);

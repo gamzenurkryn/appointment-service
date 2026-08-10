@@ -88,6 +88,11 @@ public class CallService {
 
     @Transactional
     public CallResponse updateCall(UUID id, UpdateCallRequest request) {
+        return updateCall(id, request, null);
+    }
+
+    @Transactional
+    public CallResponse updateCall(UUID id, UpdateCallRequest request, String correlationId) {
         Call call = findCall(id);
         if (request.getStatus() != null) call.setStatus(request.getStatus());
         if (request.getResult() != null) call.setResult(request.getResult());
@@ -96,7 +101,7 @@ public class CallService {
         if (request.getStartedAt() != null) call.setStartedAt(request.getStartedAt());
         if (request.getEndedAt() != null) call.setEndedAt(request.getEndedAt());
         CallResponse response = toResponse(callRepository.save(call));
-        callEventPublisher.publish(eventTypeFor(call.getStatus()), response);
+        callEventPublisher.publish(eventTypeFor(call.getStatus()), response, correlationId);
         return response;
     }
 

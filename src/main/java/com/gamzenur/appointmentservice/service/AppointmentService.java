@@ -154,6 +154,11 @@ public class AppointmentService {
 
     @Transactional
     public void applyCompletedCallResult(UUID appointmentId, String callResult) {
+        applyCompletedCallResult(appointmentId, callResult, null);
+    }
+
+    @Transactional
+    public void applyCompletedCallResult(UUID appointmentId, String callResult, String correlationId) {
         AppointmentStatus targetStatus = switch (callResult) {
             case "CONFIRMED" -> AppointmentStatus.CONFIRMED;
             case "DECLINED" -> AppointmentStatus.CANCELLED;
@@ -175,9 +180,9 @@ public class AppointmentService {
         synchronizeCalendarEvent(store, appointment);
         AppointmentResponse response = appointmentMapper.toResponse(appointmentRepository.save(appointment));
         if (targetStatus == AppointmentStatus.CANCELLED) {
-            appointmentEventPublisher.publishCancelled(response);
+            appointmentEventPublisher.publishCancelled(response, correlationId);
         } else {
-            appointmentEventPublisher.publishUpdated(response);
+            appointmentEventPublisher.publishUpdated(response, correlationId);
         }
     }
 

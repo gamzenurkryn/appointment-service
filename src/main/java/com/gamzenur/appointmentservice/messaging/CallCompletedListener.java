@@ -29,12 +29,14 @@ public class CallCompletedListener {
             containerFactory = "rawMessageListenerContainerFactory"
     )
     public void handle(Message message) throws IOException {
-        JsonNode call = objectMapper.readTree(message.getBody()).path("call");
+        JsonNode event = objectMapper.readTree(message.getBody());
+        JsonNode call = event.path("call");
+        String correlationId = event.path("correlationId").asText();
         String appointmentId = call.path("appointmentId").asText();
         String result = call.path("result").asText();
         if (appointmentId.isBlank() || result.isBlank()) {
             return;
         }
-        appointmentService.applyCompletedCallResult(UUID.fromString(appointmentId), result);
+        appointmentService.applyCompletedCallResult(UUID.fromString(appointmentId), result, correlationId);
     }
 }

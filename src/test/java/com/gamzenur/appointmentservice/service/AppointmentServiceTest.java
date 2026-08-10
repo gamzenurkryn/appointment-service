@@ -25,6 +25,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
@@ -112,11 +113,12 @@ class AppointmentServiceTest {
         when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
         when(appointmentRepository.save(appointment)).thenReturn(appointment);
 
-        appointmentService.applyCompletedCallResult(appointmentId, "CONFIRMED");
+        String correlationId = "staj-20260810-randevu-002";
+        appointmentService.applyCompletedCallResult(appointmentId, "CONFIRMED", correlationId);
 
         assertEquals(AppointmentStatus.CONFIRMED, appointment.getStatus());
         verify(googleCalendarClient).updateEvent(store, appointment);
-        verify(appointmentEventPublisher).publishUpdated(any(AppointmentResponse.class));
+        verify(appointmentEventPublisher).publishUpdated(any(AppointmentResponse.class), eq(correlationId));
     }
 
     private CreateAppointmentRequest request(UUID storeId, OffsetDateTime startTime) {

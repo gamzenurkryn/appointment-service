@@ -16,21 +16,23 @@ class CallCompletedListenerTest {
     @Test
     void appliesCompletedCallResultToAppointment() throws Exception {
         UUID appointmentId = UUID.randomUUID();
+        String correlationId = "staj-20260810-randevu-002";
         String json = """
                 {
                   "eventType": "call.ended",
+                  "correlationId": "%s",
                   "call": {
                     "appointmentId": "%s",
                     "status": "COMPLETED",
                     "result": "CONFIRMED"
                   }
                 }
-                """.formatted(appointmentId);
+                """.formatted(correlationId, appointmentId);
         AppointmentService appointmentService = mock(AppointmentService.class);
         CallCompletedListener listener = new CallCompletedListener(new ObjectMapper(), appointmentService);
 
         listener.handle(new Message(json.getBytes(StandardCharsets.UTF_8)));
 
-        verify(appointmentService).applyCompletedCallResult(appointmentId, "CONFIRMED");
+        verify(appointmentService).applyCompletedCallResult(appointmentId, "CONFIRMED", correlationId);
     }
 }
