@@ -105,6 +105,8 @@ API anahtarları ve şifreler kaynak koda yazılmaz. Aşağıdaki hassas değerl
 - `GOOGLE_CALENDAR_CREDENTIALS`
 - `WHATSAPP_ACCESS_TOKEN`
 - `WHATSAPP_APP_SECRET`
+- `WHATSAPP_PHONE_NUMBER_ID`
+- `WHATSAPP_VERIFY_TOKEN`
 - `LIVEKIT_API_KEY`
 - `LIVEKIT_API_SECRET`
 - `JWT_SECRET` (JWT etkinse en az 32 karakter)

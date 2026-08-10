@@ -39,7 +39,12 @@ services:
       RABBITMQ_HOST: rabbitmq
       GOOGLE_CALENDAR_ENABLED: ${GOOGLE_CALENDAR_ENABLED:-false}
       GOOGLE_CALENDAR_CREDENTIALS: file:/app/secrets/google-service-account.json
-      WHATSAPP_CLOUD_API_ENABLED: "false"
+      WHATSAPP_CLOUD_API_ENABLED: ${WHATSAPP_CLOUD_API_ENABLED:-false}
+      WHATSAPP_VERIFY_TOKEN: ${WHATSAPP_VERIFY_TOKEN:-}
+      WHATSAPP_APP_SECRET: ${WHATSAPP_APP_SECRET:-}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}
+      WHATSAPP_GRAPH_API_VERSION: ${WHATSAPP_GRAPH_API_VERSION:-v25.0}
     volumes:
       - ./secrets/google-service-account.json:/app/secrets/google-service-account.json:ro
     ports: ["8081:8081"]

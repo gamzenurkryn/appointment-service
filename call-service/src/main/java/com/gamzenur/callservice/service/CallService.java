@@ -71,7 +71,7 @@ public class CallService {
 
     @Transactional(readOnly = true)
     public List<CallResponse> getCalls(CallStatus status, UUID storeId, String query) {
-        String normalizedQuery = query == null || query.isBlank() ? null : query.trim();
+        String normalizedQuery = query == null || query.isBlank() ? "" : query.trim();
         List<Call> calls = callRepository.search(status, storeId, normalizedQuery);
         return calls.stream().map(this::toResponse).toList();
     }

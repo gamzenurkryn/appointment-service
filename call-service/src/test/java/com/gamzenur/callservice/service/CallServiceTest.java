@@ -111,4 +111,22 @@ class CallServiceTest {
         assertThat(result).isEmpty();
         verify(repository).search(CallStatus.ACTIVE, storeId, "90555");
     }
+
+    @Test
+    void shouldUseEmptyStringWhenSearchQueryIsMissing() {
+        CallRepository repository = mock(CallRepository.class);
+        when(repository.search(null, null, "")).thenReturn(List.of());
+        CallService service = new CallService(
+                repository,
+                mock(AppointmentClient.class),
+                mock(LiveKitClient.class),
+                mock(AgentDispatcher.class),
+                mock(CallEventPublisher.class)
+        );
+
+        List<CallResponse> result = service.getCalls(null, null, null);
+
+        assertThat(result).isEmpty();
+        verify(repository).search(null, null, "");
+    }
 }

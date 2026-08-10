@@ -18,7 +18,7 @@ public interface CallRepository extends JpaRepository<Call, UUID> {
             select call from Call call
             where (:status is null or call.status = :status)
               and (:storeId is null or call.storeId = :storeId)
-              and (:query is null
+              and (:query = ''
                    or lower(call.roomName) like lower(concat('%', :query, '%'))
                    or call.customerPhone like concat('%', :query, '%'))
             order by call.startedAt desc
