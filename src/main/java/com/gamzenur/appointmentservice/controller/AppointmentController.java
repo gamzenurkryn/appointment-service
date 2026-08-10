@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -47,6 +48,7 @@ public class AppointmentController {
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Yeni randevu oluştur", description = "Uygun zaman dilimine randevu kaydeder ve etkin entegrasyonlara olay gönderir.")
     public AppointmentResponse createAppointment(
+            @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId,
             @Valid @RequestBody CreateAppointmentRequest request
     ) {
         return appointmentService.createAppointment(request);

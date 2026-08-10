@@ -19,6 +19,7 @@ class AppointmentCreatedListenerTest {
     @Test
     void startsCallForCreatedAppointmentEvent() throws Exception {
         UUID appointmentId = UUID.randomUUID();
+        String correlationId = "staj-20260810-randevu-001";
         CallService callService = mock(CallService.class);
         AppointmentCreatedListener listener = new AppointmentCreatedListener(
                 new ObjectMapper(),
@@ -27,14 +28,15 @@ class AppointmentCreatedListenerTest {
         String json = """
                 {
                   "eventType": "appointment.created",
+                  "correlationId": "%s",
                   "appointment": { "id": "%s" }
                 }
-                """.formatted(appointmentId);
+                """.formatted(correlationId, appointmentId);
 
         listener.receive(new Message(json.getBytes(StandardCharsets.UTF_8)));
 
         ArgumentCaptor<CreateCallRequest> captor = ArgumentCaptor.forClass(CreateCallRequest.class);
-        verify(callService).createCall(captor.capture());
+        verify(callService).createCall(captor.capture(), org.mockito.ArgumentMatchers.eq(correlationId));
         assertThat(captor.getValue().getAppointmentId()).isEqualTo(appointmentId);
     }
 }

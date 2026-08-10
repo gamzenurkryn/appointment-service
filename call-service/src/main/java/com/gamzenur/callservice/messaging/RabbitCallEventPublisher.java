@@ -22,11 +22,19 @@ public class RabbitCallEventPublisher implements CallEventPublisher {
 
     @Override
     public void publish(String eventType, CallResponse call) {
+        publish(eventType, call, currentCorrelationId());
+    }
+
+    @Override
+    public void publish(String eventType, CallResponse call, String correlationId) {
+        String effectiveCorrelationId = correlationId == null || correlationId.isBlank()
+                ? currentCorrelationId()
+                : correlationId;
         applicationEventPublisher.publishEvent(new CallEvent(
                 UUID.randomUUID(),
                 eventType,
                 OffsetDateTime.now(),
-                currentCorrelationId(),
+                effectiveCorrelationId,
                 call
         ));
     }

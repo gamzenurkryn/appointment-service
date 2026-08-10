@@ -52,7 +52,8 @@ class CallServiceTest {
         CreateCallRequest request = new CreateCallRequest();
         request.setAppointmentId(appointmentId);
 
-        CallResponse response = service.createCall(request);
+        String correlationId = "staj-20260810-randevu-001";
+        CallResponse response = service.createCall(request, correlationId);
 
         assertThat(response.getAppointmentId()).isEqualTo(appointmentId);
         assertThat(response.getStoreId()).isEqualTo(storeId);
@@ -62,7 +63,7 @@ class CallServiceTest {
         assertThat(response.getParticipantCount()).isZero();
         verify(liveKitClient).createRoom(response.getRoomName());
         verify(agentDispatcher).dispatch(response.getRoomName(), response.getId(), appointmentId);
-        verify(callEventPublisher).publish("call.started", response);
+        verify(callEventPublisher).publish("call.started", response, correlationId);
     }
 
     @Test

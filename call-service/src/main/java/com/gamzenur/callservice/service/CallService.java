@@ -44,6 +44,11 @@ public class CallService {
 
     @Transactional
     public CallResponse createCall(CreateCallRequest request) {
+        return createCall(request, null);
+    }
+
+    @Transactional
+    public CallResponse createCall(CreateCallRequest request, String correlationId) {
         Call existingCall = callRepository.findFirstByAppointmentId(request.getAppointmentId()).orElse(null);
         if (existingCall != null) {
             return toResponse(existingCall);
@@ -65,7 +70,7 @@ public class CallService {
         call.setStatus(CallStatus.QUEUED);
         call.setParticipantCount(0);
         CallResponse response = toResponse(callRepository.save(call));
-        callEventPublisher.publish("call.started", response);
+        callEventPublisher.publish("call.started", response, correlationId);
         return response;
     }
 

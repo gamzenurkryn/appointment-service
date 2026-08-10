@@ -32,9 +32,10 @@ public class AppointmentCreatedListener {
     public void receive(Message message) throws IOException {
         JsonNode event = objectMapper.readTree(message.getBody());
         UUID appointmentId = UUID.fromString(event.path("appointment").path("id").asText());
+        String correlationId = event.path("correlationId").asText();
 
         CreateCallRequest request = new CreateCallRequest();
         request.setAppointmentId(appointmentId);
-        callService.createCall(request);
+        callService.createCall(request, correlationId);
     }
 }
