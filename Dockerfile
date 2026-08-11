@@ -27,3 +27,9 @@ WORKDIR /app
 COPY crm-service/build/libs/crm-service-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8084
 ENTRYPOINT ["java", "-jar", "app.jar"]
+
+FROM eclipse-temurin:21-jre AS whatsapp-runtime
+WORKDIR /app
+COPY whatsapp-service/build/libs/whatsapp-service-0.0.1-SNAPSHOT.jar app.jar
+EXPOSE 8085
+ENTRYPOINT ["java", "-jar", "app.jar"]

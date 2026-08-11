@@ -43,6 +43,17 @@ spring:
                     redis-rate-limiter.replenishRate: ${GATEWAY_RATE_LIMIT_REPLENISH_RATE:10}
                     redis-rate-limiter.burstCapacity: ${GATEWAY_RATE_LIMIT_BURST_CAPACITY:20}
                     redis-rate-limiter.requestedTokens: 1
+            - id: whatsapp-service
+              uri: ${WHATSAPP_SERVICE_URL:http://localhost:8085}
+              predicates:
+                - Path=/api/v1/whatsapp/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    key-resolver: "#{@clientIpKeyResolver}"
+                    redis-rate-limiter.replenishRate: ${GATEWAY_RATE_LIMIT_REPLENISH_RATE:10}
+                    redis-rate-limiter.burstCapacity: ${GATEWAY_RATE_LIMIT_BURST_CAPACITY:20}
+                    redis-rate-limiter.requestedTokens: 1
             - id: appointment-service
               uri: ${APPOINTMENT_SERVICE_URL:http://localhost:8081}
               predicates:
@@ -72,7 +83,7 @@ app:
 system-status:
   call-service-health-url: ${CALL_SERVICE_HEALTH_URL:http://localhost:8082/actuator/health}
   notification-service-health-url: ${NOTIFICATION_SERVICE_HEALTH_URL:http://localhost:8083/actuator/health}
-  whatsapp-service-health-url: ${WHATSAPP_SERVICE_HEALTH_URL:http://localhost:8081/actuator/health}
+  whatsapp-service-health-url: ${WHATSAPP_SERVICE_HEALTH_URL:http://localhost:8085/actuator/health}
 
 management:
   endpoints:

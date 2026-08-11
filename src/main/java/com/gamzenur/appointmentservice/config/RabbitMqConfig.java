@@ -23,8 +23,6 @@ public class RabbitMqConfig {
     public static final String CREATED_ROUTING_KEY = "appointment.created";
     public static final String UPDATED_ROUTING_KEY = "appointment.updated";
     public static final String CANCELLED_ROUTING_KEY = "appointment.cancelled";
-    public static final String WHATSAPP_EXCHANGE = "whatsapp";
-    public static final String MESSAGE_RECEIVED_ROUTING_KEY = "message.received";
     public static final String CALLS_EXCHANGE = "calls";
     public static final String CALL_COMPLETED_ROUTING_KEY = "call.completed";
     public static final String APPOINTMENT_CALLS_QUEUE = "appointment.calls";
@@ -32,11 +30,6 @@ public class RabbitMqConfig {
     @Bean
     public TopicExchange appointmentsExchange() {
         return new TopicExchange(APPOINTMENTS_EXCHANGE, true, false);
-    }
-
-    @Bean
-    public TopicExchange whatsappExchange() {
-        return new TopicExchange(WHATSAPP_EXCHANGE, true, false);
     }
 
     @Bean

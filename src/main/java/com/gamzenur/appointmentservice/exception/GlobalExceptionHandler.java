@@ -64,22 +64,6 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler(WhatsAppIntegrationException.class)
-    public ResponseEntity<ApiError> handleWhatsAppIntegration(
-            WhatsAppIntegrationException exception,
-            HttpServletRequest request
-    ) {
-        return buildError(HttpStatus.BAD_GATEWAY, "WHATSAPP_API_ERROR", exception.getMessage(), request);
-    }
-
-    @ExceptionHandler(WhatsAppNotConfiguredException.class)
-    public ResponseEntity<ApiError> handleWhatsAppNotConfigured(
-            WhatsAppNotConfiguredException exception,
-            HttpServletRequest request
-    ) {
-        return buildError(HttpStatus.SERVICE_UNAVAILABLE, "WHATSAPP_NOT_CONFIGURED", exception.getMessage(), request);
-    }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(
             MethodArgumentNotValidException exception,
