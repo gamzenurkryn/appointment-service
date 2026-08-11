@@ -24,10 +24,14 @@ public class WhatsAppWebhookService {
     private final WhatsAppProperties properties;
     private final WhatsAppMessagePublisher publisher;
     private final ObjectMapper mapper;
+    private final WhatsAppStoreResolver storeResolver;
 
     public WhatsAppWebhookService(WhatsAppProperties properties, WhatsAppMessagePublisher publisher,
-                                  ObjectMapper mapper) {
-        this.properties = properties; this.publisher = publisher; this.mapper = mapper;
+                                  ObjectMapper mapper, WhatsAppStoreResolver storeResolver) {
+        this.properties = properties;
+        this.publisher = publisher;
+        this.mapper = mapper;
+        this.storeResolver = storeResolver;
     }
 
     public void process(String body, String signature, String correlationId) {
@@ -36,18 +40,33 @@ public class WhatsAppWebhookService {
             JsonNode root = mapper.readTree(body);
             for (JsonNode entry : root.path("entry")) {
                 for (JsonNode change : entry.path("changes")) {
-                    for (JsonNode message : change.path("value").path("messages")) {
+                    JsonNode value = change.path("value");
+                    JsonNode messages = value.path("messages");
+                    if (!messages.isArray() || messages.isEmpty()) {
+                        continue;
+                    }
+                    String phoneNumberId = value.path("metadata").path("phone_number_id").asText(null);
+                    UUID storeId = storeResolver.resolve(phoneNumberId);
+                    for (JsonNode message : messages) {
                         String type = message.path("type").asText();
                         String text = "text".equals(type) ? message.path("text").path("body").asText(null) : null;
+                        String customerPhone = normalizePhone(message.path("from").asText());
                         publisher.publish(new MessageReceivedEvent(UUID.randomUUID(), "message.received",
                                 OffsetDateTime.now(), correlationId, message.path("id").asText(),
-                                message.path("from").asText(), type, text, message.deepCopy()));
+                                customerPhone, storeId, type, text, message.deepCopy()));
                     }
                 }
             }
         } catch (JsonProcessingException ex) {
             throw new WhatsAppExceptions.BadRequest("WhatsApp webhook JSON gövdesi okunamadı.");
         }
+    }
+
+    private String normalizePhone(String phone) {
+        if (phone == null || phone.isBlank() || phone.startsWith("+")) {
+            return phone;
+        }
+        return "+" + phone;
     }
 
     private void verifySignature(String body, String signature) {

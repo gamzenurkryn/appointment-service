@@ -12,6 +12,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.HexFormat;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -20,6 +21,8 @@ import static org.mockito.Mockito.verify;
 class WhatsAppWebhookServiceTest {
 
     private static final String APP_SECRET = "test-app-secret";
+    private static final String PHONE_NUMBER_ID = "122255556612270";
+    private static final UUID STORE_ID = UUID.fromString("b2c30000-0000-0000-0000-000000000001");
     private WhatsAppMessagePublisher publisher;
     private WhatsAppWebhookService service;
 
@@ -28,7 +31,15 @@ class WhatsAppWebhookServiceTest {
         WhatsAppProperties properties = new WhatsAppProperties();
         properties.setAppSecret(APP_SECRET);
         publisher = mock(WhatsAppMessagePublisher.class);
-        service = new WhatsAppWebhookService(properties, publisher, new ObjectMapper());
+        WhatsAppStoreResolver storeResolver = new WhatsAppStoreResolver(
+                PHONE_NUMBER_ID + "=" + STORE_ID
+        );
+        service = new WhatsAppWebhookService(
+                properties,
+                publisher,
+                new ObjectMapper(),
+                storeResolver
+        );
     }
 
     @Test
@@ -38,6 +49,9 @@ class WhatsAppWebhookServiceTest {
                   "entry": [{
                     "changes": [{
                       "value": {
+                        "metadata": {
+                          "phone_number_id": "122255556612270"
+                        },
                         "messages": [{
                           "id": "wamid-test",
                           "from": "905551234567",
@@ -58,6 +72,8 @@ class WhatsAppWebhookServiceTest {
         assertThat(event.eventType()).isEqualTo("message.received");
         assertThat(event.correlationId()).isEqualTo("correlation-test-001");
         assertThat(event.messageId()).isEqualTo("wamid-test");
+        assertThat(event.customerPhone()).isEqualTo("+905551234567");
+        assertThat(event.storeId()).isEqualTo(STORE_ID);
         assertThat(event.text()).isEqualTo("Randevu almak istiyorum");
     }
 
