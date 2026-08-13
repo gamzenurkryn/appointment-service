@@ -3,6 +3,8 @@ package com.gamzenur.appointmentservice.dto;
 import com.gamzenur.appointmentservice.entity.Channel;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -10,15 +12,18 @@ import java.util.UUID;
 public class CreateAppointmentRequest {
 
     @NotBlank
+    @Size(max = 150)
     private String customerName;
 
     @NotBlank
+    @Pattern(regexp = "^\\+[1-9]\\d{7,14}$", message = "E.164 formatında olmalıdır (örnek: +905321234567)")
     private String customerPhone;
 
     @NotNull
     private UUID storeId;
 
     @NotBlank
+    @Size(max = 100)
     private String serviceType;
 
     @NotNull

@@ -1,54 +1,64 @@
 package com.gamzenur.appointmentservice.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-//veritabanı tablosu olduğunu belrtir
 @Entity
 @Table(name = "appointments")
 public class Appointment {
 
-    //benzersiz kimlik UUID
     @Id
     @GeneratedValue
     private UUID id;
 
+    @Column(nullable = false, length = 150)
     private String customerName;
 
+    @Column(nullable = false, length = 20)
     private String customerPhone;
 
+    @Column(nullable = false)
     private UUID storeId;
 
+    @Column(length = 150)
     private String storeName;
 
+    @Column(nullable = false, length = 100)
     private String serviceType;
 
-    //OffsetDateTime zaman dilgisi
+    @Column(nullable = false)
     private OffsetDateTime startTime;
 
+    @Column(nullable = false)
     private OffsetDateTime endTime;
 
-    //sadece belirlenen durum
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
     private AppointmentStatus status;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
     private Channel channel;
 
     private String calendarEventId;
 
-    //uzun notlar için text
     @Column(columnDefinition = "TEXT")
-    private  String notes;
+    private String notes;
 
+    @Column(nullable = false)
     private OffsetDateTime createdAt;
 
+    @Column(nullable = false)
     private OffsetDateTime updatedAt;
 
-
-    //sınıftaki verilere erişme
     public Appointment() {
     }
 
@@ -116,8 +126,13 @@ public class Appointment {
         this.endTime = endTime;
     }
 
+    public AppointmentStatus getStatus() {
+        return status;
+    }
 
-
+    public void setStatus(AppointmentStatus status) {
+        this.status = status;
+    }
 
     public Channel getChannel() {
         return channel;
@@ -126,10 +141,6 @@ public class Appointment {
     public void setChannel(Channel channel) {
         this.channel = channel;
     }
-
-    public AppointmentStatus getStatus() {return status;}
-
-    public void setStatus(AppointmentStatus status) {this.status = status;}
 
     public String getCalendarEventId() {
         return calendarEventId;
@@ -162,9 +173,4 @@ public class Appointment {
     public void setUpdatedAt(OffsetDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
-
-
-    }
-
-
-
+}

@@ -1,13 +1,12 @@
-package com.gamzenur.appointmentservice;
+package com.gamzenur.whatsappservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class AppointmentServiceApplicationTests {
+class WhatsAppServiceApplicationTest {
 
     @Test
     void contextLoads() {
     }
-
 }
