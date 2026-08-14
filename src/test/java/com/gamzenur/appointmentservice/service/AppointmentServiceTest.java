@@ -6,6 +6,7 @@ import com.gamzenur.appointmentservice.entity.Appointment;
 import com.gamzenur.appointmentservice.entity.AppointmentStatus;
 import com.gamzenur.appointmentservice.entity.Channel;
 import com.gamzenur.appointmentservice.entity.Store;
+import com.gamzenur.appointmentservice.entity.Employee;
 import com.gamzenur.appointmentservice.exception.SlotAlreadyBookedException;
 import com.gamzenur.appointmentservice.integration.calendar.GoogleCalendarClient;
 import com.gamzenur.appointmentservice.messaging.AppointmentEventPublisher;
@@ -45,6 +46,9 @@ class AppointmentServiceTest {
     @Mock
     private AppointmentEventPublisher appointmentEventPublisher;
 
+    @Mock
+    private EmployeeService employeeService;
+
     private AppointmentService appointmentService;
 
     @BeforeEach
@@ -54,7 +58,8 @@ class AppointmentServiceTest {
                 storeRepository,
                 new AppointmentMapper(),
                 googleCalendarClient,
-                appointmentEventPublisher
+                appointmentEventPublisher,
+                employeeService
         );
     }
 
@@ -64,11 +69,18 @@ class AppointmentServiceTest {
         OffsetDateTime startTime = OffsetDateTime.now().plusDays(1).withSecond(0).withNano(0);
         Store store = store(storeId, "Kadıköy Mağazası");
         CreateAppointmentRequest request = request(storeId, startTime);
+        Employee employee = employee(storeId, "Ayşe");
+
+        when(employeeService.findAvailableEmployee(
+                eq(storeId),
+                isNull(),
+                eq("sac-kesimi"),
+                eq(startTime),
+                eq(startTime.plusMinutes(30)),
+                isNull()
+        )).thenReturn(employee);
 
         when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
-        when(appointmentRepository.existsOverlappingAppointment(
-                any(), any(), any(), any(), isNull()
-        )).thenReturn(false);
         when(appointmentRepository.saveAndFlush(any(Appointment.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         when(googleCalendarClient.createEvent(any(Store.class), any(Appointment.class)))
@@ -80,7 +92,49 @@ class AppointmentServiceTest {
         assertEquals(AppointmentStatus.PENDING, response.getStatus());
         assertEquals("Kadıköy Mağazası", response.getStoreName());
         assertEquals("calendar-event-123", response.getCalendarEventId());
+        assertEquals(employee.getId(), response.getEmployeeId());
+        assertEquals("Ayşe", response.getEmployeeName());
         verify(appointmentEventPublisher).publishCreated(response);
+    }
+
+    @Test
+    void createAppointmentUsesServiceSpecificDuration() {
+        UUID storeId = UUID.randomUUID();
+        OffsetDateTime startTime = OffsetDateTime.now()
+                .plusDays(2)
+                .withSecond(0)
+                .withNano(0);
+
+        Store store = store(storeId, "Nişantaşı Mağazası");
+        CreateAppointmentRequest request = request(storeId, startTime);
+        request.setServiceType("sac-boyama");
+        Employee employee = employee(storeId, "Zeynep");
+
+        when(employeeService.findAvailableEmployee(
+                eq(storeId),
+                isNull(),
+                eq("sac-boyama"),
+                eq(startTime),
+                eq(startTime.plusMinutes(90)),
+                isNull()
+        )).thenReturn(employee);
+
+        when(storeRepository.findById(storeId))
+                .thenReturn(Optional.of(store));
+
+        when(appointmentRepository.saveAndFlush(any(Appointment.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        AppointmentResponse response =
+                appointmentService.createAppointment(request);
+
+        assertEquals(
+                startTime.plusMinutes(90),
+                response.getEndTime()
+        );
+
+        assertEquals(employee.getId(), response.getEmployeeId());
+        assertEquals("Zeynep", response.getEmployeeName());
     }
 
     @Test
@@ -88,9 +142,18 @@ class AppointmentServiceTest {
         UUID storeId = UUID.randomUUID();
         OffsetDateTime startTime = OffsetDateTime.now().plusDays(1);
         when(storeRepository.findById(storeId)).thenReturn(Optional.of(store(storeId, "Demo")));
-        when(appointmentRepository.existsOverlappingAppointment(
-                any(), any(), any(), any(), isNull()
-        )).thenReturn(true);
+        when(employeeService.findAvailableEmployee(
+                any(),
+                isNull(),
+                any(),
+                any(),
+                any(),
+                isNull()
+        )).thenThrow(
+                new SlotAlreadyBookedException(
+                        "Bu hizmet ve zaman için uygun çalışan bulunamadı."
+                )
+        );
 
         assertThrows(
                 SlotAlreadyBookedException.class,
@@ -140,5 +203,14 @@ class AppointmentServiceTest {
         store.setPhone("+902121234567");
         store.setTimezone("Europe/Istanbul");
         return store;
+    }
+
+    private Employee employee(UUID storeId, String name) {
+        Employee employee = new Employee();
+        employee.setId(UUID.randomUUID());
+        employee.setStoreId(storeId);
+        employee.setName(name);
+        employee.setActive(true);
+        return employee;
     }
 }

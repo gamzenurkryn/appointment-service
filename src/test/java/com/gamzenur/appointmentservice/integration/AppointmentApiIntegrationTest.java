@@ -48,6 +48,24 @@ class AppointmentApiIntegrationTest {
 
     @Test
     void appointmentLifecycleAndDoubleBookingProtectionWork() throws Exception {
+        String employeeRequestBody = """
+                {
+                  "storeId": "%s",
+                  "name": "Ayşe",
+                  "serviceTypes": [
+                    "sac-kesimi"
+                  ]
+                }
+                """.formatted(STORE_ID);
+
+        mockMvc.perform(post("/api/v1/employees")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(employeeRequestBody))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("Ayşe"))
+                .andExpect(jsonPath("$.storeId").value(STORE_ID))
+                .andExpect(jsonPath("$.serviceTypes[0]").value("sac-kesimi"));
+
         String requestBody = """
                 {
                   "customerName": "Ayşe Yılmaz",

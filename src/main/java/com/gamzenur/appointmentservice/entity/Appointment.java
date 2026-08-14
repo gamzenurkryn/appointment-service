@@ -31,6 +31,12 @@ public class Appointment {
     @Column(length = 150)
     private String storeName;
 
+    @Column
+    private UUID employeeId;
+
+    @Column(length = 150)
+    private String employeeName;
+
     @Column(nullable = false, length = 100)
     private String serviceType;
 
@@ -97,6 +103,14 @@ public class Appointment {
     public String getStoreName() {
         return storeName;
     }
+
+    public UUID getEmployeeId() { return employeeId; }
+
+    public void setEmployeeId(UUID employeeId) { this.employeeId = employeeId; }
+
+    public String getEmployeeName() { return employeeName; }
+
+    public void setEmployeeName(String employeeName) { this.employeeName = employeeName; }
 
     public void setStoreName(String storeName) {
         this.storeName = storeName;

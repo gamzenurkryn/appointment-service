@@ -48,4 +48,20 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID>,
             @Param("cancelledStatus") AppointmentStatus cancelledStatus,
             @Param("excludedId") UUID excludedId
     );
+
+    @Query("""
+        select count(a) > 0 from Appointment a
+        where a.employeeId = :employeeId
+          and a.status <> :cancelledStatus
+          and (:excludedId is null or a.id <> :excludedId)
+          and a.startTime < :endTime
+          and a.endTime > :startTime
+        """)
+    boolean existsOverlappingEmployeeAppointment(
+            @Param("employeeId") UUID employeeId,
+            @Param("startTime") OffsetDateTime startTime,
+            @Param("endTime") OffsetDateTime endTime,
+            @Param("cancelledStatus") AppointmentStatus cancelledStatus,
+            @Param("excludedId") UUID excludedId
+    );
 }

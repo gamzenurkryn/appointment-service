@@ -6,6 +6,7 @@ import com.gamzenur.appointmentservice.dto.UpdateAppointmentRequest;
 import com.gamzenur.appointmentservice.entity.Appointment;
 import com.gamzenur.appointmentservice.entity.AppointmentStatus;
 import com.gamzenur.appointmentservice.entity.Store;
+import com.gamzenur.appointmentservice.entity.Employee;
 import com.gamzenur.appointmentservice.exception.BadRequestException;
 import com.gamzenur.appointmentservice.exception.ResourceNotFoundException;
 import com.gamzenur.appointmentservice.exception.SlotAlreadyBookedException;
@@ -21,7 +22,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
+
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -29,39 +30,53 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class AppointmentService {
 
-    private static final Duration DEFAULT_APPOINTMENT_DURATION = Duration.ofMinutes(30);
+
 
     private final AppointmentRepository appointmentRepository;
     private final StoreRepository storeRepository;
     private final AppointmentMapper appointmentMapper;
     private final GoogleCalendarClient googleCalendarClient;
     private final AppointmentEventPublisher appointmentEventPublisher;
+    private final EmployeeService employeeService;
 
     public AppointmentService(
             AppointmentRepository appointmentRepository,
             StoreRepository storeRepository,
             AppointmentMapper appointmentMapper,
             GoogleCalendarClient googleCalendarClient,
-            AppointmentEventPublisher appointmentEventPublisher
+            AppointmentEventPublisher appointmentEventPublisher,
+            EmployeeService employeeService
     ) {
         this.appointmentRepository = appointmentRepository;
         this.storeRepository = storeRepository;
         this.appointmentMapper = appointmentMapper;
         this.googleCalendarClient = googleCalendarClient;
         this.appointmentEventPublisher = appointmentEventPublisher;
+        this.employeeService = employeeService;
     }
+
 
     @Transactional
     public AppointmentResponse createAppointment(CreateAppointmentRequest request) {
         ServiceCatalog.validate(request.getServiceType());
         Store store = findStore(request.getStoreId());
-        OffsetDateTime endTime = request.getStartTime().plus(DEFAULT_APPOINTMENT_DURATION);
+        OffsetDateTime endTime = request.getStartTime()
+                .plus(ServiceCatalog.duration(request.getServiceType()));
         validateFutureTime(request.getStartTime());
-        ensureSlotIsAvailable(request.getStoreId(), request.getStartTime(), endTime, null);
+        Employee employee = employeeService.findAvailableEmployee(
+                request.getStoreId(),
+                request.getEmployeeId(),
+                request.getServiceType(),
+                request.getStartTime(),
+                endTime,
+                null
+        );
 
         Appointment appointment = appointmentMapper.toEntity(request);
         OffsetDateTime now = OffsetDateTime.now();
         appointment.setStoreName(store.getName());
+        appointment.setEmployeeId(employee.getId());
+        appointment.setEmployeeName(employee.getName());
         appointment.setEndTime(endTime);
         appointment.setStatus(AppointmentStatus.PENDING);
         appointment.setCreatedAt(now);
@@ -132,9 +147,22 @@ public class AppointmentService {
         Store store = findStore(appointment.getStoreId());
 
         if (request.getStartTime() != null) {
-            OffsetDateTime endTime = request.getStartTime().plus(DEFAULT_APPOINTMENT_DURATION);
+            OffsetDateTime endTime = request.getStartTime()
+                    .plus(ServiceCatalog.duration(appointment.getServiceType()));
+
             validateFutureTime(request.getStartTime());
-            ensureSlotIsAvailable(appointment.getStoreId(), request.getStartTime(), endTime, id);
+
+            Employee employee = employeeService.findAvailableEmployee(
+                    appointment.getStoreId(),
+                    appointment.getEmployeeId(),
+                    appointment.getServiceType(),
+                    request.getStartTime(),
+                    endTime,
+                    id
+            );
+
+            appointment.setEmployeeId(employee.getId());
+            appointment.setEmployeeName(employee.getName());
             appointment.setStartTime(request.getStartTime());
             appointment.setEndTime(endTime);
         }

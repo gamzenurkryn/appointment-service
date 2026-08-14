@@ -12,6 +12,8 @@ public class AppointmentResponse {
     private String customerPhone;
     private UUID storeId;
     private String storeName;
+    private UUID employeeId;
+    private String employeeName;
     private String serviceType;
     private OffsetDateTime startTime;
     private OffsetDateTime endTime;
@@ -51,6 +53,14 @@ public class AppointmentResponse {
     public void setStoreId(UUID storeId) {
         this.storeId = storeId;
     }
+
+    public UUID getEmployeeId() { return employeeId; }
+
+    public void setEmployeeId(UUID employeeId) { this.employeeId = employeeId; }
+
+    public String getEmployeeName() { return employeeName; }
+
+    public void setEmployeeName(String employeeName) { this.employeeName = employeeName; }
 
     public String getStoreName() {
         return storeName;

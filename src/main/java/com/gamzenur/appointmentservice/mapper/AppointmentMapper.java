@@ -16,6 +16,8 @@ public class AppointmentMapper {
         appointment.setCustomerName(request.getCustomerName());
         appointment.setCustomerPhone(request.getCustomerPhone());
         appointment.setStoreId(request.getStoreId());
+        appointment.setEmployeeId(request.getEmployeeId());
+        appointment.setEmployeeId(request.getEmployeeId());
         appointment.setServiceType(request.getServiceType());
         appointment.setStartTime(request.getStartTime());
         appointment.setChannel(request.getChannel());
@@ -32,6 +34,8 @@ public class AppointmentMapper {
         response.setCustomerPhone(appointment.getCustomerPhone());
         response.setStoreId(appointment.getStoreId());
         response.setStoreName(appointment.getStoreName());
+        response.setEmployeeId(appointment.getEmployeeId());
+        response.setEmployeeName(appointment.getEmployeeName());
         response.setServiceType(appointment.getServiceType());
         response.setStartTime(appointment.getStartTime());
         response.setEndTime(appointment.getEndTime());

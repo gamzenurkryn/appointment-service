@@ -21,6 +21,7 @@ public class CreateAppointmentRequest {
 
     @NotNull
     private UUID storeId;
+    private UUID employeeId;
 
     @NotBlank
     @Size(max = 100)
@@ -55,6 +56,10 @@ public class CreateAppointmentRequest {
     public void setStoreId(UUID storeId) {
         this.storeId = storeId;
     }
+
+    public UUID getEmployeeId() { return employeeId; }
+
+    public void setEmployeeId(UUID employeeId) { this.employeeId = employeeId; }
 
     public String getServiceType() {
         return serviceType;
